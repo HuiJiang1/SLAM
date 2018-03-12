@@ -105,17 +105,6 @@ void setup(void)
   delay(1000);
   SerialCom->println("Setup....");
 
-//If no MPU is attached then .begin will hang forever 
-/*#ifndef NO_READ_MPU
-  if (fabo_9axis.begin()) {
-    SerialCom->println("configured FaBo 9Axis I2C Brick");
-    axis_OK = true;
-  } else {
-    SerialCom->println("FaBo 9Axis device error");
-    axis_OK = false;
-  }
-#endif */
-
 // MPU9250 set up
 // Note all error-returning functions return a 0 on success so check for INV_SUCCESS for a more verbose error check
 if (imu.begin() == INV_SUCCESS) {
@@ -123,6 +112,9 @@ if (imu.begin() == INV_SUCCESS) {
 } else {
   SerialCom->println("Yeah Nah, MPU not good...");
 }
+
+// Initialise DMP of MPU9250. DMP rate = 10Hz
+imu.dmpBegin(DMP_FEATURE_SEND_RAW_ACCEL |DMP_FEATURE_GYRO_CAL | DMP_FEATURE_SEND_CAL_GYRO | DMP_FEATURE_6X_LP_QUAT, 10);
 
 // MPU9250 enabling all sensors
 imu.setSensors(INV_XYZ_GYRO | INV_XYZ_ACCEL | INV_XYZ_COMPASS);
@@ -200,6 +192,14 @@ STATE running() {
 #endif
   }
   return RUNNING;
+
+// Trying to read form the DMP
+if (imu.fifoAvailable) // check for new data in FIFO
+{
+  if(imu.dmpUpdateFifo() == INV_SUCCESS) {
+    printIMUData();
+  }
+}
 }
 
 //Stop of Lipo Battery voltage is too low, to protect Battery
@@ -710,6 +710,27 @@ void sweep_fan()
   else {
     fan_delay_counter++;
   }
+}
+
+void printIMUData(void)
+{  
+  // After calling dmpUpdateFifo() the ax, gx, mx, etc. values
+  // are all updated.
+  float gyroX = imu.calcGyro(imu.gx);
+  float gyroY = imu.calcGyro(imu.gy);
+  float gyroZ = imu.calcGyro(imu.gz);
+  
+  SerialPort.println("Gyro: " + String(gyroX) + ", " +
+              String(gyroY) + ", " + String(gyroZ) + " dps");
+  SerialPort.println("Time: " + String(imu.time) + " ms");
+  SerialPort.println();
+}
+
+void calculateHeading() 
+{
+  // Need to determine offset (output at angular velocity = 0) Currently outputting something close to half of supply.
+  // Involts. Could use multimeter.
+  // sensitivity (scale factor) trial and error?
 }
 
 
