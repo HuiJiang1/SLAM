@@ -81,6 +81,12 @@ bool axis_OK;
   int Lipo_level_cal;
   int raw_lipo;
 
+// Declarations and initialisations
+Servo fan_servo;
+int fan_pos = 0;
+int fan_delay_counter = 0;
+bool fan_cw = true;
+
 //Serial Pointer
 HardwareSerial *SerialCom;
 
@@ -93,7 +99,7 @@ void setup(void)
   digitalWrite(TRIG_PIN, LOW);
 
 // Setup the Serial port and pointer, the pointer allows switching the debug info through the USB port(Serial) or Bluetooth port(Serial1) with ease.
-  SerialCom = &Serial1;
+  SerialCom = &Serial;
   SerialCom->begin(115200);
   SerialCom->println("MECHENG706_Base_Code_25/01/2018");
   delay(1000);
@@ -166,6 +172,8 @@ STATE running() {
 
   read_serial_command();
   fast_flash_double_LED_builtin();
+
+  sweep_fan(); 
 
   if (millis() - previous_millis > 500) {  //Arduino style 500ms timed execution statement 
     previous_millis = millis();
@@ -491,6 +499,8 @@ void enable_motors()
   left_rear_motor.attach(left_rear);  // attaches the servo on pin left_rear to turn Vex Motor Controller 29 On
   right_rear_motor.attach(right_rear);  // attaches the servo on pin right_rear to turn Vex Motor Controller 29 On
   right_font_motor.attach(right_front);  // attaches the servo on pin right_front to turn Vex Motor Controller 29 On
+
+  fan_servo.attach(9);
 }
 void stop() //Stop
 {
@@ -665,5 +675,41 @@ void speed_read()
   SerialCom->print(" ms ");
 }
 
+void sweep_fan()
+{
+  //Servo position only changed every 1000 counts
+  if (fan_delay_counter >= 1000) {
+    fan_delay_counter = 0;
+
+    //When servo is turning clockwise
+    if (fan_cw) {
+      if (fan_pos < 180) {
+        fan_pos++;
+      }
+      //Reached max of clockwise turn, changes to anticlockwise
+      else {
+        fan_pos--;
+        fan_cw = false;
+      }
+    }
+
+    //When servo is turning anticlock
+    else {
+      if (fan_pos > 0) {
+        fan_pos--;
+      }
+      //Reached max of anticlockwise turn, changes to clockwise
+      else {
+        fan_pos++;
+        fan_cw = true;
+      }
+    }
+    
+    fan_servo.write(fan_pos);
+  }
+  else {
+    fan_delay_counter++;
+  }
+}
 
 
