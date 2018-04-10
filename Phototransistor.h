@@ -11,14 +11,14 @@ class Phototransistor
     float total;
     float average;
     
-	public:
+    public:
     
     Phototransistor(char type, const int pin) {
       type = type;
       this->pin = pin;
     }
 
-		int getPin(){
+    int getPin(){
       return pin;
     }
 
@@ -27,11 +27,11 @@ class Phototransistor
       return voltage;
     }
     
-		void addToTotal(float voltage) {
+   void addToTotal(float voltage) {
       total += voltage;
     }
 
-		float getTotal() {
+   float getTotal() {
       return total;
     }
 
@@ -43,7 +43,7 @@ class Phototransistor
       average = total/noOfReads;
     }
 
-		float getAvg() {
+    float getAvg() {
       return average;
     }
 
@@ -55,22 +55,23 @@ class Phototransistor
       float voltage = readVoltage();
       addToTotal(voltage);
     }
-
-    void fiveHundredMillisecFunc() {
+	
+    // This function require previous running of tenMillisecFunc() <50> times 
+    bool fiveHundredMillisecFunc() {
       calcAvg(50);
       resetTotal();
       switch(type) {
         case 'B':
           if (average > 1.0)
-            this->fireOrNot = true;
+            return true;
           else
-            this->fireOrNot = false;
+            return false;
           break;
         case 'L':
           if (average > 1.5)
-            this->fireOrNot = true;
+            return true;
           else
-            this->fireOrNot = false;
+            return false;
           break;
         default:
           break;
