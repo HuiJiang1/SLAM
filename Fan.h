@@ -1,5 +1,5 @@
-#ifndef Fan_h
-#define Fan_h
+#ifndef FAN
+#define FAN
 
 #include "Phototransistor.h"
 
@@ -7,7 +7,6 @@ class Fan
 {
   private:
     int pin;
-    bool on;
 
   public:
     Fan(const int pin) {
@@ -19,10 +18,11 @@ class Fan
     }
     
     void needsToBeOn(bool yes) {
-      if (yes)
+      if (yes){
         digitalWrite(pin, LOW);
       else
         digitalWrite(pin, HIGH);
+      }
     }
 };
 
