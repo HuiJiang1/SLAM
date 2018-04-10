@@ -1,5 +1,5 @@
-#ifndef NineGearServo_h
-#define NineGearServo_h
+#ifndef NineGearServo
+#define NineGearServo
 
 #include <Servo.h>
 #include "Phototransistor.h"
@@ -25,10 +25,11 @@ class NineGear : public Servo
       
     }
 
-    void direct(bool clockwise) {
+    void directCW(bool clockwise) {
       clockwise = clockwise;
     }
 
+    // Basically this function sweep the servo by 1 degreee for each iteration
     void sweep() {
       if (clockwise) {
         if (anglePosition < 180) {
